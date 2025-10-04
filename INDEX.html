@@ -1,0 +1,299 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghajini's Neon Tic-Tac-Toe</title>
+    <style>
+        /*
+         * --- GENERAL STYLES ---
+         */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #000; /* Black background for the neon effect */
+            font-family: 'Arial', sans-serif;
+            color: #fff;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+            background-color: rgba(10, 10, 10, 0.8);
+        }
+
+        /*
+         * --- NEON STYLING VARIABLES ---
+         */
+        :root {
+            --neon-color: #00ffff; /* Cyan/Aqua */
+            --neon-shadow: 0 0 5px var(--neon-color), 0 0 10px var(--neon-color), 0 0 20px var(--neon-color), 0 0 40px var(--neon-color);
+        }
+
+        /*
+         * --- LOGIN SCREEN STYLES ---
+         */
+        #login-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px;
+            border: 2px solid var(--neon-color);
+            box-shadow: var(--neon-shadow);
+            background-color: #111;
+        }
+
+        #login-screen h1 {
+            font-size: 3em;
+            color: var(--neon-color);
+            text-shadow: var(--neon-shadow);
+            margin-bottom: 40px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            animation: pulse 1.5s infinite alternate; /* Subtle breathing effect */
+        }
+
+        #login-button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: var(--neon-color);
+            color: #000;
+            box-shadow: 0 0 10px var(--neon-color);
+            transition: all 0.3s ease;
+        }
+
+        #login-button:hover {
+            background-color: #fff;
+            box-shadow: 0 0 15px var(--neon-color), 0 0 30px var(--neon-color);
+            transform: scale(1.05);
+        }
+
+        @keyframes pulse {
+            from {
+                text-shadow: 0 0 5px var(--neon-color), 0 0 10px var(--neon-color);
+            }
+            to {
+                text-shadow: var(--neon-shadow);
+            }
+        }
+
+        /*
+         * --- GAME SCREEN STYLES ---
+         */
+        #game-screen {
+            display: none; /* Initially hidden */
+            padding: 20px;
+            background-color: #111;
+            border: 2px solid #ff00ff; /* Different neon color for the game */
+            box-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff, 0 0 20px #ff00ff;
+        }
+
+        #status {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #fff;
+            text-shadow: 0 0 5px #fff;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 5px;
+            margin: 0 auto;
+            background-color: #000;
+            border: 2px solid #fff;
+        }
+
+        .cell {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3em;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: #333;
+            color: #fff;
+            transition: background-color 0.1s ease;
+            user-select: none;
+        }
+
+        .cell:hover {
+            background-color: #444;
+        }
+
+        .cell.X {
+            color: var(--neon-color); /* Cyan X */
+            text-shadow: var(--neon-shadow);
+        }
+
+        .cell.O {
+            color: #ff00ff; /* Magenta O */
+            text-shadow: 0 0 5px #ff00ff, 0 0 10px #ff00ff, 0 0 20px #ff00ff;
+        }
+
+        #reset-button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #ff00ff;
+            color: #000;
+            box-shadow: 0 0 10px #ff00ff;
+            transition: all 0.3s ease;
+        }
+        #reset-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px #ff00ff, 0 0 30px #ff00ff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <div id="login-screen">
+            <h1>GHAJINI</h1>
+            <button id="login-button">LOGIN</button>
+        </div>
+
+        <div id="game-screen">
+            <div id="status">Player X's Turn</div>
+            <div class="board" id="board">
+                <div class="cell" data-index="0"></div>
+                <div class="cell" data-index="1"></div>
+                <div class="cell" data-index="2"></div>
+                <div class="cell" data-index="3"></div>
+                <div class="cell" data-index="4"></div>
+                <div class="cell" data-index="5"></div>
+                <div class="cell" data-index="6"></div>
+                <div class="cell" data-index="7"></div>
+                <div class="cell" data-index="8"></div>
+            </div>
+            <button id="reset-button">Restart Game</button>
+        </div>
+
+    </div>
+
+    <script>
+        const loginScreen = document.getElementById('login-screen');
+        const loginButton = document.getElementById('login-button');
+        const gameScreen = document.getElementById('game-screen');
+        const board = document.getElementById('board');
+        const statusDisplay = document.getElementById('status');
+        const resetButton = document.getElementById('reset-button');
+        const cells = Array.from(document.getElementsByClassName('cell'));
+
+        let gameActive = true;
+        let currentPlayer = 'X';
+        let gameState = ['', '', '', '', '', '', '', '', ''];
+
+        // Winning conditions array
+        const winningConditions = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6]
+        ];
+
+        // --- GAME LOGIC FUNCTIONS ---
+
+        function handleResultValidation() {
+            let roundWon = false;
+            for (let i = 0; i < winningConditions.length; i++) {
+                const winCondition = winningConditions[i];
+                let a = gameState[winCondition[0]];
+                let b = gameState[winCondition[1]];
+                let c = gameState[winCondition[2]];
+
+                if (a === '' || b === '' || c === '') {
+                    continue;
+                }
+                if (a === b && b === c) {
+                    roundWon = true;
+                    break;
+                }
+            }
+
+            if (roundWon) {
+                statusDisplay.innerHTML = `Player ${currentPlayer} Wins!`;
+                gameActive = false;
+                return;
+            }
+
+            let roundDraw = !gameState.includes('');
+            if (roundDraw) {
+                statusDisplay.innerHTML = `Game Draw!`;
+                gameActive = false;
+                return;
+            }
+
+            handlePlayerChange();
+        }
+
+        function handleCellPlayed(clickedCell, clickedCellIndex) {
+            gameState[clickedCellIndex] = currentPlayer;
+            clickedCell.innerHTML = currentPlayer;
+            clickedCell.classList.add(currentPlayer); // Add class for neon styling
+        }
+
+        function handlePlayerChange() {
+            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+            statusDisplay.innerHTML = `Player ${currentPlayer}'s Turn`;
+        }
+
+        function handleCellClick(event) {
+            const clickedCell = event.target;
+            const clickedCellIndex = parseInt(clickedCell.getAttribute('data-index'));
+
+            if (gameState[clickedCellIndex] !== '' || !gameActive) {
+                return;
+            }
+
+            handleCellPlayed(clickedCell, clickedCellIndex);
+            handleResultValidation();
+        }
+
+        function handleRestartGame() {
+            gameActive = true;
+            currentPlayer = 'X';
+            gameState = ['', '', '', '', '', '', '', '', ''];
+            statusDisplay.innerHTML = `Player ${currentPlayer}'s Turn`;
+            cells.forEach(cell => {
+                cell.innerHTML = '';
+                cell.classList.remove('X', 'O');
+            });
+        }
+
+        // --- EVENT LISTENERS ---
+
+        // 1. Login Functionality
+        loginButton.addEventListener('click', () => {
+            loginScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
+            handleRestartGame(); // Start a fresh game
+        });
+
+        // 2. Game Functionality
+        cells.forEach(cell => cell.addEventListener('click', handleCellClick));
+        resetButton.addEventListener('click', handleRestartGame);
+
+    </script>
+</body>
+</html>
